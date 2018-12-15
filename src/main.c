@@ -3,11 +3,13 @@
 #define	SPACING	5
 
 static void on_button_load_image_clicked(GtkWidget *button, gpointer data);
+static void on_button_change_image_clicked(GtkWidget *button, gpointer data);
 static void load_image(const gchar *filename);
 
 static GtkWidget	*window;
 static GtkWidget	*image;
 static GtkWidget	*entry_image_filename;
+static GtkWidget	*checkbox_grayscale;
 
 int main(int argc, char *argv[])
 {
@@ -15,6 +17,7 @@ int main(int argc, char *argv[])
 	GtkWidget	*hbox;
 	GtkWidget	*frame_image;
 	GtkWidget	*button_load_image;
+	GtkWidget	*button_change_image;
 
 	gtk_init(&argc, &argv);
 
@@ -25,6 +28,8 @@ int main(int argc, char *argv[])
 	image = gtk_image_new();
 	button_load_image = gtk_button_new_with_label("Загрузить картинку");
 	entry_image_filename = gtk_entry_new();
+	checkbox_grayscale = gtk_check_button_new_with_label("Сделать чёрно-белым");
+	button_change_image = gtk_button_new_with_label("Изменить картинку");
 
 	load_image("/home/chip/Pictures/beach.png");
 
@@ -33,11 +38,15 @@ int main(int argc, char *argv[])
 	gtk_container_add(GTK_CONTAINER(frame_image), image);
 	gtk_box_pack_start(GTK_BOX(vbox), button_load_image, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), entry_image_filename, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), checkbox_grayscale, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), button_change_image, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), frame_image, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(window), hbox);
 	g_signal_connect(G_OBJECT(button_load_image), "clicked",
 		G_CALLBACK(on_button_load_image_clicked), NULL);
+	g_signal_connect(G_OBJECT(button_change_image), "clicked",
+		G_CALLBACK(on_button_change_image_clicked), NULL);
 	g_signal_connect(G_OBJECT(window), "destroy",
 		G_CALLBACK(gtk_main_quit), NULL);
 	gtk_widget_show_all(window);
@@ -65,6 +74,10 @@ static void on_button_load_image_clicked(GtkWidget *button, gpointer data)
 	}
 
 	gtk_widget_destroy (dialog);
+}
+
+static void on_button_change_image_clicked(GtkWidget *button, gpointer data)
+{
 }
 
 static void load_image(const gchar *filename)
