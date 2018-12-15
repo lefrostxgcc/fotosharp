@@ -12,8 +12,10 @@ struct ch_color
 
 static void on_button_load_image_clicked(GtkWidget *button, gpointer data);
 static void on_button_change_image_clicked(GtkWidget *button, gpointer data);
+static void on_button_save_image_clicked(GtkWidget *button, gpointer data);
 static void load_image(const gchar *filename);
 static void change_image(void);
+static void save_image(GtkWidget *img, const gchar *filename);
 static void change_grayscale(struct ch_color *in, struct ch_color *out);
 static void change_brightness(struct ch_color *in, struct ch_color *out,
 	double brightness);
@@ -39,6 +41,7 @@ int main(int argc, char *argv[])
 	GtkWidget	*frame_image;
 	GtkWidget	*button_load_image;
 	GtkWidget	*button_change_image;
+	GtkWidget	*button_save_image;
 	GtkWidget	*label_brightness;
 	GtkWidget	*label_contrast;
 
@@ -63,6 +66,7 @@ int main(int argc, char *argv[])
 	gtk_range_set_value(GTK_RANGE(scale_contrast), 0);
 	checkbox_grayscale = gtk_check_button_new_with_label("Сделать чёрно-белым");
 	button_change_image = gtk_button_new_with_label("Изменить картинку");
+	button_save_image = gtk_button_new_with_label("Сохранить в файл");
 
 	load_image("/home/chip/Pictures/beach.png");
 
@@ -77,6 +81,7 @@ int main(int argc, char *argv[])
 	gtk_box_pack_start(GTK_BOX(vbox), label_contrast, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), scale_contrast, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), button_change_image, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), button_save_image, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), frame_image, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, FALSE, FALSE, 0);
 	gtk_container_add(GTK_CONTAINER(window), hbox);
@@ -84,6 +89,8 @@ int main(int argc, char *argv[])
 		G_CALLBACK(on_button_load_image_clicked), NULL);
 	g_signal_connect(G_OBJECT(button_change_image), "clicked",
 		G_CALLBACK(on_button_change_image_clicked), NULL);
+	g_signal_connect(G_OBJECT(button_save_image), "clicked",
+		G_CALLBACK(on_button_save_image_clicked), NULL);
 	g_signal_connect(G_OBJECT(window), "destroy",
 		G_CALLBACK(gtk_main_quit), NULL);
 	gtk_widget_show_all(window);
@@ -103,7 +110,7 @@ static void on_button_load_image_clicked(GtkWidget *button, gpointer data)
 	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog),
 		g_get_home_dir());
 
-	if (gtk_dialog_run(GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
+	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
 	{
 		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
 		load_image(filename);
@@ -118,6 +125,34 @@ static void on_button_change_image_clicked(GtkWidget *button, gpointer data)
 	change_image();
 }
 
+static void on_button_save_image_clicked(GtkWidget *button, gpointer data)
+{
+	GtkWidget	*dialog;
+	gchar		*filename;
+
+	dialog = gtk_file_chooser_dialog_new(NULL, GTK_WINDOW(window),
+		GTK_FILE_CHOOSER_ACTION_SAVE,
+		"Cancel", GTK_RESPONSE_CANCEL,
+		"Save", GTK_RESPONSE_ACCEPT,
+		NULL);
+
+	gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog),
+		TRUE);
+	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog),
+		g_get_home_dir());
+	gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog),
+		"fotosharp.png");
+
+	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+	{
+		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+		save_image(image, filename);
+		g_free(filename);
+	}
+
+	gtk_widget_destroy(dialog);
+}
+
 static void load_image(const gchar *filename)
 {
 	gtk_image_set_from_file(GTK_IMAGE(image), filename);
@@ -126,6 +161,14 @@ static void load_image(const gchar *filename)
 		g_object_unref(last_load_image_pixbuf);
 	last_load_image_pixbuf = gdk_pixbuf_copy(
 		gtk_image_get_pixbuf(GTK_IMAGE(image)));
+}
+
+static void save_image(GtkWidget *img, const gchar *filename)
+{
+	GdkPixbuf	*pixbuf;
+
+	pixbuf = gtk_image_get_pixbuf(GTK_IMAGE(img));
+	gdk_pixbuf_save(pixbuf, filename, "png", NULL, NULL);
 }
 
 static void change_image(void)
