@@ -15,6 +15,9 @@ static void on_button_change_image_clicked(GtkWidget *button, gpointer data);
 static void load_image(const gchar *filename);
 static void change_image(void);
 static void change_grayscale(struct ch_color *in, struct ch_color *out);
+static void change_brightness(struct ch_color *in, struct ch_color *out,
+	double brightness);
+static int	change_comp_brightness(int component, double brightness);
 static void get_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color);
 static void set_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color);
 
@@ -147,6 +150,11 @@ static void change_image(void)
 			{
 					change_grayscale(&image_color, &result_color);
 			}
+			if (gtk_range_get_value(GTK_RANGE(scale_brightness)) != 0)
+			{
+					change_brightness(&result_color, &result_color,
+						gtk_range_get_value(GTK_RANGE(scale_brightness)));
+			}
 			set_pixel(result_pixbuf, col, row, &result_color);
 		}
 	gtk_image_set_from_pixbuf(GTK_IMAGE(image), result_pixbuf);
@@ -161,6 +169,26 @@ static void change_grayscale(struct ch_color *in, struct ch_color *out)
 	out->red = avg;
 	out->green = avg;
 	out->blue = avg;
+}
+
+static void change_brightness(struct ch_color *in, struct ch_color *out,
+	double brightness)
+{
+	out->red = change_comp_brightness(in->red, brightness);
+	out->green = change_comp_brightness(in->green, brightness);
+	out->blue = change_comp_brightness(in->blue, brightness);
+}
+
+static int	change_comp_brightness(int component, double brightness)
+{
+	int result;
+
+	result = component + (brightness / 100) * 128;
+	if (result > 255)
+		result = 255;
+	else if (result < 0)
+		result = 0;
+	return result;
 }
 
 static void get_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color)
