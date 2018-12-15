@@ -23,6 +23,8 @@ static GtkWidget	*window;
 static GtkWidget	*image;
 static GtkWidget	*entry_image_filename;
 static GtkWidget	*checkbox_grayscale;
+static GtkWidget	*scale_brightness;
+static GtkWidget	*scale_contrast;
 
 int main(int argc, char *argv[])
 {
@@ -31,6 +33,8 @@ int main(int argc, char *argv[])
 	GtkWidget	*frame_image;
 	GtkWidget	*button_load_image;
 	GtkWidget	*button_change_image;
+	GtkWidget	*label_brightness;
+	GtkWidget	*label_contrast;
 
 	gtk_init(&argc, &argv);
 
@@ -43,6 +47,14 @@ int main(int argc, char *argv[])
 	image = gtk_image_new();
 	button_load_image = gtk_button_new_with_label("Загрузить картинку");
 	entry_image_filename = gtk_entry_new();
+	label_brightness = gtk_label_new("Яркость: (%)");
+	label_contrast = gtk_label_new("Контрастность: (%)");
+	scale_brightness = gtk_scale_new_with_range(
+		GTK_ORIENTATION_HORIZONTAL, -50, 50, 1);
+	gtk_range_set_value(GTK_RANGE(scale_brightness), 0);
+	scale_contrast = gtk_scale_new_with_range(
+		GTK_ORIENTATION_HORIZONTAL, -50, 50, 1);
+	gtk_range_set_value(GTK_RANGE(scale_contrast), 0);
 	checkbox_grayscale = gtk_check_button_new_with_label("Сделать чёрно-белым");
 	button_change_image = gtk_button_new_with_label("Изменить картинку");
 
@@ -54,6 +66,10 @@ int main(int argc, char *argv[])
 	gtk_box_pack_start(GTK_BOX(vbox), button_load_image, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), entry_image_filename, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), checkbox_grayscale, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), label_brightness, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), scale_brightness, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), label_contrast, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), scale_contrast, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), button_change_image, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), frame_image, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, FALSE, FALSE, 0);
