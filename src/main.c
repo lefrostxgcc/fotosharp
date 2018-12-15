@@ -2,10 +2,23 @@
 
 #define	SPACING	5
 
+struct ch_color
+{
+	guchar red;
+	guchar green;
+	guchar blue;
+	guchar alpha;
+};
+
 static void on_button_load_image_clicked(GtkWidget *button, gpointer data);
 static void on_button_change_image_clicked(GtkWidget *button, gpointer data);
 static void load_image(const gchar *filename);
+static void change_image(void);
+static void change_grayscale(struct ch_color *in, struct ch_color *out);
+static void get_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color);
+static void set_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color);
 
+static GdkPixbuf	*last_load_image_pixbuf;
 static GtkWidget	*window;
 static GtkWidget	*image;
 static GtkWidget	*entry_image_filename;
@@ -73,15 +86,116 @@ static void on_button_load_image_clicked(GtkWidget *button, gpointer data)
 		g_free(filename);
 	}
 
-	gtk_widget_destroy (dialog);
+	gtk_widget_destroy(dialog);
 }
 
 static void on_button_change_image_clicked(GtkWidget *button, gpointer data)
 {
+	change_image();
 }
 
 static void load_image(const gchar *filename)
 {
 	gtk_image_set_from_file(GTK_IMAGE(image), filename);
 	gtk_entry_set_text(GTK_ENTRY(entry_image_filename), filename);
+	if (last_load_image_pixbuf)
+		g_object_unref(last_load_image_pixbuf);
+	last_load_image_pixbuf = gdk_pixbuf_copy(
+		gtk_image_get_pixbuf(GTK_IMAGE(image)));
+}
+
+static void change_image(void)
+{
+	struct ch_color	image_color;
+	struct ch_color	result_color;
+	GdkPixbuf		*image_pixbuf;
+	GdkPixbuf		*result_pixbuf;
+	int				row;
+	int				col;
+	int				width;
+	int				height;
+	int				avg;
+
+	image_pixbuf = last_load_image_pixbuf;
+	result_pixbuf = gdk_pixbuf_copy(image_pixbuf);
+	width = gdk_pixbuf_get_width(image_pixbuf);
+	height = gdk_pixbuf_get_height(image_pixbuf);
+	for (row = 0; row < height; row++)
+		for (col = 0; col < width; col++)
+		{
+			get_pixel(image_pixbuf, col, row, &image_color);
+			result_color = image_color;
+			if (gtk_toggle_button_get_active(
+				GTK_TOGGLE_BUTTON(checkbox_grayscale)))
+			{
+					change_grayscale(&image_color, &result_color);
+			}
+			set_pixel(result_pixbuf, col, row, &result_color);
+		}
+	gtk_image_set_from_pixbuf(GTK_IMAGE(image), result_pixbuf);
+	g_object_unref(result_pixbuf);
+}
+
+static void change_grayscale(struct ch_color *in, struct ch_color *out)
+{
+	int		avg;
+
+	avg = (in->red + in->green + in->blue) / 3;
+	out->red = avg;
+	out->green = avg;
+	out->blue = avg;
+}
+
+static void get_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color)
+{
+	guchar	*pixels;
+	guchar	*p;
+	int		width;
+	int		height;
+	int		rowstride;
+	int		n_channels;
+
+	n_channels = gdk_pixbuf_get_n_channels(pixbuf);
+	width = gdk_pixbuf_get_width(pixbuf);
+	height = gdk_pixbuf_get_height(pixbuf);
+
+	if (x < 0 || x > width || y < 0 || y > height)
+		return;
+
+	rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+	pixels = gdk_pixbuf_get_pixels(pixbuf);
+
+	p = pixels + y * rowstride + x * n_channels;
+	color->red		= p[0];
+	color->green	= p[1];
+	color->blue 	= p[2];
+	if (gdk_pixbuf_get_has_alpha(pixbuf))
+		color->alpha = p[3];
+}
+
+static void set_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color)
+{
+	guchar	*pixels;
+	guchar	*p;
+	int		width;
+	int		height;
+	int		rowstride;
+	int		n_channels;
+
+	n_channels = gdk_pixbuf_get_n_channels(pixbuf);
+	width = gdk_pixbuf_get_width(pixbuf);
+	height = gdk_pixbuf_get_height(pixbuf);
+
+	if (x < 0 || x > width || y < 0 || y > height)
+		return;
+
+	rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+	pixels = gdk_pixbuf_get_pixels(pixbuf);
+
+	p = pixels + y * rowstride + x * n_channels;
+	p[0] = color->red;
+	p[1] = color->green;
+	p[2] = color->blue;
+	if (gdk_pixbuf_get_has_alpha(pixbuf))
+		p[3] = color->alpha;
 }
