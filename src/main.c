@@ -35,6 +35,8 @@ int main(int argc, char *argv[])
 	gtk_init(&argc, &argv);
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_title(GTK_WINDOW(window),
+		"Попиксельная обработка изображений");
 	vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, SPACING);
 	hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, SPACING);
 	frame_image = gtk_frame_new(NULL);
@@ -114,7 +116,6 @@ static void change_image(void)
 	int				col;
 	int				width;
 	int				height;
-	int				avg;
 
 	image_pixbuf = last_load_image_pixbuf;
 	result_pixbuf = gdk_pixbuf_copy(image_pixbuf);
