@@ -26,6 +26,8 @@ int main(int argc, char *argv[])
 	button_load_image = gtk_button_new_with_label("Загрузить картинку");
 	entry_image_filename = gtk_entry_new();
 
+	load_image("/home/chip/Pictures/beach.png");
+
 	gtk_container_set_border_width(GTK_CONTAINER(window), SPACING);
 	gtk_widget_set_sensitive(entry_image_filename, FALSE);
 	gtk_container_add(GTK_CONTAINER(frame_image), image);
