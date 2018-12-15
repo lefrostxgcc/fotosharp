@@ -3,6 +3,7 @@
 #define	SPACING	5
 
 static void on_button_load_image_clicked(GtkWidget *button, gpointer data);
+static void load_image(const gchar *filename);
 
 static GtkWidget	*window;
 static GtkWidget	*image;
@@ -57,10 +58,15 @@ static void on_button_load_image_clicked(GtkWidget *button, gpointer data)
 	if (gtk_dialog_run(GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
 	{
 		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-		gtk_entry_set_text(GTK_ENTRY(entry_image_filename), filename);
-		gtk_image_set_from_file(GTK_IMAGE(image), filename);
+		load_image(filename);
 		g_free(filename);
 	}
 
 	gtk_widget_destroy (dialog);
+}
+
+static void load_image(const gchar *filename)
+{
+	gtk_image_set_from_file(GTK_IMAGE(image), filename);
+	gtk_entry_set_text(GTK_ENTRY(entry_image_filename), filename);
 }
