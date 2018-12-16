@@ -24,8 +24,11 @@ static void change_contrast(struct ch_color *in, struct ch_color *out,
 	double contrast);
 static void change_correction(struct ch_color *in, struct ch_color *out,
 	int (*corr_func)(int));
+static void change_gamma(struct ch_color *in, struct ch_color *out,
+	double gamma);
 static int	change_comp_brightness(int component, double brightness);
 static int	change_comp_contrast(int component, double contrast);
+static int	change_comp_gamma(int component, double gamma);
 static void get_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color);
 static void set_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color);
 
@@ -276,6 +279,11 @@ static void change_image(void)
 			}
 			if (corr_func != correction_line)
 				change_correction(&result_color, &result_color, corr_func);
+			if (gtk_range_get_value(GTK_RANGE(scale_gamma)) != 100)
+			{
+					change_gamma(&result_color, &result_color,
+						gtk_range_get_value(GTK_RANGE(scale_gamma)));
+			}
 			set_pixel(result_pixbuf, col, row, &result_color);
 		}
 	gtk_image_set_from_pixbuf(GTK_IMAGE(image), result_pixbuf);
@@ -316,6 +324,17 @@ static void change_correction(struct ch_color *in, struct ch_color *out,
 	out->blue = corr_func(in->blue);
 }
 
+static void change_gamma(struct ch_color *in, struct ch_color *out,
+	double gamma)
+{
+	double		g;
+
+	g = gamma / 100;
+	out->red = change_comp_gamma(in->red, g);
+	out->green = change_comp_gamma(in->green, g);
+	out->blue = change_comp_gamma(in->blue, g);
+}
+
 static int	change_comp_brightness(int component, double brightness)
 {
 	int result;
@@ -340,6 +359,16 @@ static int	change_comp_contrast(int component, double contrast)
 		result = 255;
 	else if (result < 0)
 		result = 0;
+	return result;
+}
+
+static int	change_comp_gamma(int component, double gamma)
+{
+	int result;
+
+	result = pow(component / 255.0, gamma) * 255;
+	if (result > 255)
+		result = 255;
 	return result;
 }
 
