@@ -26,6 +26,25 @@ static int	change_comp_contrast(int component, double contrast);
 static void get_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color);
 static void set_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color);
 
+static int correction_line(int component);
+static int correction_sin(int component);
+static int correction_exp(int component);
+static int correction_log(int component);
+
+struct ch_correction
+{
+	const char *name;
+	int (*fn)(int);
+} static corrections[] = 
+{
+	{"Линейная коррекция",	correction_line},
+	{"Синусоидальная",		correction_sin},
+	{"Экспоненциальная",	correction_exp},
+	{"Логарифмическая",		correction_log}
+};
+
+static const int corrections_size = sizeof corrections / sizeof corrections[0];
+
 static GdkPixbuf	*last_load_image_pixbuf;
 static GtkWidget	*window;
 static GtkWidget	*image;
@@ -33,17 +52,21 @@ static GtkWidget	*entry_image_filename;
 static GtkWidget	*checkbox_grayscale;
 static GtkWidget	*scale_brightness;
 static GtkWidget	*scale_contrast;
+static GtkWidget	*combo_box_correction;
 
 int main(int argc, char *argv[])
 {
-	GtkWidget	*vbox;
-	GtkWidget	*hbox;
-	GtkWidget	*frame_image;
-	GtkWidget	*button_load_image;
-	GtkWidget	*button_change_image;
-	GtkWidget	*button_save_image;
-	GtkWidget	*label_brightness;
-	GtkWidget	*label_contrast;
+	GtkWidget		*vbox;
+	GtkWidget		*hbox;
+	GtkWidget		*frame_image;
+	GtkWidget		*button_load_image;
+	GtkWidget		*button_change_image;
+	GtkWidget		*button_save_image;
+	GtkWidget		*label_brightness;
+	GtkWidget		*label_contrast;
+	GtkListStore	*store_correction;
+	GtkCellRenderer	*render;
+	GtkTreeIter		iter;
 
 	gtk_init(&argc, &argv);
 
@@ -68,6 +91,30 @@ int main(int argc, char *argv[])
 	button_change_image = gtk_button_new_with_label("Изменить картинку");
 	button_save_image = gtk_button_new_with_label("Сохранить в файл");
 
+	store_correction = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_POINTER);
+	for (int i = 0; i < corrections_size; i++)
+	{
+		gtk_list_store_append(store_correction, &iter);
+		gtk_list_store_set(store_correction, &iter, 0, corrections[i].name,
+			1, corrections[i].fn, -1);
+	}
+
+	combo_box_correction =
+		gtk_combo_box_new_with_model(GTK_TREE_MODEL(store_correction));
+	g_object_unref(store_correction);
+
+	render = gtk_cell_renderer_text_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(combo_box_correction),
+		render, TRUE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(combo_box_correction),
+		render,
+		"text", 0,
+		NULL);
+	gtk_combo_box_set_active(GTK_COMBO_BOX(combo_box_correction), 0);
+
+	gtk_widget_set_valign(button_change_image, GTK_ALIGN_END);
+	gtk_widget_set_valign(button_save_image, GTK_ALIGN_END);
+
 	load_image("/home/chip/Pictures/beach.png");
 
 	gtk_container_set_border_width(GTK_CONTAINER(window), SPACING);
@@ -80,7 +127,8 @@ int main(int argc, char *argv[])
 	gtk_box_pack_start(GTK_BOX(vbox), scale_brightness, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), label_contrast, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), scale_contrast, FALSE, FALSE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), button_change_image, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), combo_box_correction, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), button_change_image, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), button_save_image, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), frame_image, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), vbox, FALSE, FALSE, 0);
@@ -263,6 +311,26 @@ static int	change_comp_contrast(int component, double contrast)
 	else if (result < 0)
 		result = 0;
 	return result;
+}
+
+static int correction_line(int component)
+{
+	return component;
+}
+
+static int correction_sin(int component)
+{
+	return component;
+}
+
+static int correction_exp(int component)
+{
+	return component;
+}
+
+static int correction_log(int component)
+{
+	return component;
 }
 
 static void get_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color)
