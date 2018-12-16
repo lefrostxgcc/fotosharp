@@ -21,6 +21,8 @@ static void change_brightness(struct ch_color *in, struct ch_color *out,
 	double brightness);
 static void change_contrast(struct ch_color *in, struct ch_color *out,
 	double contrast);
+static void change_correction(struct ch_color *in, struct ch_color *out,
+	int (*corr_func)(int));
 static int	change_comp_brightness(int component, double brightness);
 static int	change_comp_contrast(int component, double contrast);
 static void get_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color);
@@ -225,6 +227,9 @@ static void change_image(void)
 	struct ch_color	result_color;
 	GdkPixbuf		*image_pixbuf;
 	GdkPixbuf		*result_pixbuf;
+	GtkTreeModel	*model;
+	gpointer		corr_func;
+	GtkTreeIter		iter;
 	int				row;
 	int				col;
 	int				width;
@@ -234,6 +239,9 @@ static void change_image(void)
 	result_pixbuf = gdk_pixbuf_copy(image_pixbuf);
 	width = gdk_pixbuf_get_width(image_pixbuf);
 	height = gdk_pixbuf_get_height(image_pixbuf);
+	gtk_combo_box_get_active_iter(GTK_COMBO_BOX(combo_box_correction), &iter);
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(combo_box_correction));
+	gtk_tree_model_get(model, &iter, 1, &corr_func, -1);
 	for (row = 0; row < height; row++)
 		for (col = 0; col < width; col++)
 		{
@@ -254,6 +262,8 @@ static void change_image(void)
 					change_contrast(&result_color, &result_color,
 						gtk_range_get_value(GTK_RANGE(scale_contrast)));
 			}
+			if (corr_func != correction_line)
+				change_correction(&result_color, &result_color, corr_func);
 			set_pixel(result_pixbuf, col, row, &result_color);
 		}
 	gtk_image_set_from_pixbuf(GTK_IMAGE(image), result_pixbuf);
@@ -284,6 +294,14 @@ static void change_contrast(struct ch_color *in, struct ch_color *out,
 	out->red = change_comp_contrast(in->red, contrast);
 	out->green = change_comp_contrast(in->green, contrast);
 	out->blue = change_comp_contrast(in->blue, contrast);
+}
+
+static void change_correction(struct ch_color *in, struct ch_color *out,
+	int (*corr_func)(int))
+{
+	out->red = corr_func(in->red);
+	out->green = corr_func(in->green);
+	out->blue = corr_func(in->blue);
 }
 
 static int	change_comp_brightness(int component, double brightness)
