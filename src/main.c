@@ -47,6 +47,7 @@ struct ch_correction
 };
 
 static const int corrections_size = sizeof corrections / sizeof corrections[0];
+static double correction_k;
 
 static GdkPixbuf	*last_load_image_pixbuf;
 static GtkWidget	*window;
@@ -72,6 +73,8 @@ int main(int argc, char *argv[])
 	GtkTreeIter		iter;
 
 	gtk_init(&argc, &argv);
+
+	correction_k = 8 * log(2) / 255.0;
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(window),
@@ -351,7 +354,14 @@ static int correction_sin(int c)
 
 static int correction_exp(int component)
 {
-	return component;
+	int result;
+
+	result = exp(correction_k * component) - 1;
+	if (result < 0)
+		result = 0;
+	if (result > 255)
+		result = 255;
+	return result;
 }
 
 static int correction_log(int component)
