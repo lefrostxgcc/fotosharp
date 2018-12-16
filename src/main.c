@@ -354,7 +354,7 @@ static int correction_sin(int c)
 
 static int correction_exp(int component)
 {
-	int result;
+	int		result;
 
 	result = exp(correction_k * component) - 1;
 	if (result < 0)
@@ -366,7 +366,14 @@ static int correction_exp(int component)
 
 static int correction_log(int component)
 {
-	return component;
+	int		result;
+
+	result = log(component + 1) / correction_k;
+	if (result < 0)
+		result = 0;
+	if (result > 255)
+		result = 255;
+	return result;
 }
 
 static void get_pixel(GdkPixbuf *pixbuf, int x, int y, struct ch_color *color)
