@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <math.h>
 
 #define	SPACING	5
 
@@ -336,9 +337,16 @@ static int correction_line(int component)
 	return component;
 }
 
-static int correction_sin(int component)
+static int correction_sin(int c)
 {
-	return component;
+	int		result;
+
+	result = (255 / 2.0) * sin(G_PI / 255.0 * c - G_PI_2) + (255 / 2.0);
+	if (result < 0)
+		result = 0;
+	if (result > 255)
+		result = 255;
+	return result;
 }
 
 static int correction_exp(int component)
