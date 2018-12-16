@@ -57,6 +57,7 @@ static GtkWidget	*checkbox_grayscale;
 static GtkWidget	*scale_brightness;
 static GtkWidget	*scale_contrast;
 static GtkWidget	*combo_box_correction;
+static GtkWidget	*scale_gamma;
 
 int main(int argc, char *argv[])
 {
@@ -68,6 +69,7 @@ int main(int argc, char *argv[])
 	GtkWidget		*button_save_image;
 	GtkWidget		*label_brightness;
 	GtkWidget		*label_contrast;
+	GtkWidget		*label_gamma;
 	GtkListStore	*store_correction;
 	GtkCellRenderer	*render;
 	GtkTreeIter		iter;
@@ -94,6 +96,10 @@ int main(int argc, char *argv[])
 		GTK_ORIENTATION_HORIZONTAL, -50, 50, 1);
 	gtk_range_set_value(GTK_RANGE(scale_contrast), 0);
 	checkbox_grayscale = gtk_check_button_new_with_label("Сделать чёрно-белым");
+	label_gamma = gtk_label_new("Гамма-коррекция: (%)");
+	scale_gamma = gtk_scale_new_with_range(
+		GTK_ORIENTATION_HORIZONTAL, 1, 199, 1);
+	gtk_range_set_value(GTK_RANGE(scale_gamma), 100);
 	button_change_image = gtk_button_new_with_label("Изменить картинку");
 	button_save_image = gtk_button_new_with_label("Сохранить в файл");
 
@@ -134,6 +140,8 @@ int main(int argc, char *argv[])
 	gtk_box_pack_start(GTK_BOX(vbox), label_contrast, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), scale_contrast, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), combo_box_correction, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), label_gamma, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox), scale_gamma, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), button_change_image, TRUE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), button_save_image, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(hbox), frame_image, TRUE, TRUE, 0);
